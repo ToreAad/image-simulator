@@ -18,12 +18,12 @@ def initialize(backgrounds_dir, classes_dir):
     class_objects = [os.listdir(os.path.join(classes_dir,c)) for c in class_names]
 
     # ignore scaling for now: .resize(resolution, Image.BICUBIC)
-    bgs = [Image.open(os.path.join(backgrounds_dir,b)) for b in backgrounds]
+    bgs = [Image.open(os.path.join(backgrounds_dir,b)) for b in backgrounds if b.endswith(".jpg")]
 
     objs = []
     for i,c in enumerate(class_objects):
         print('loading '+class_names[i]+' as '+str(i))
-        objs = objs + [[Image.open(os.path.join(classes_dir,class_names[i],o)) for o in c]]
+        objs = objs + [[Image.open(os.path.join(classes_dir,class_names[i],o)) for o in c if o.endswith('.png')]]
 
     return objs, class_names, bgs
 
@@ -45,7 +45,8 @@ def mkimage(filename, objs, names, bgs, maxobjs, output_dir="images_out",single=
         log = log + ['{}\t{}\t{}\t{}\t{}\t{}\n'.format(names[cls],cls,posy,posx,posy+sizey,posx+sizex)]
     im.save(os.path.join(output_dir,filename+'.png'))
     with open(os.path.join(output_dir,filename+'.txt'),'w') as f:
-        for l in log: f.write(l)
+        for l in log: 
+            f.write(l)
 
 # Testing
 def test():
