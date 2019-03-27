@@ -38,7 +38,7 @@ def mkimage(filename, objs, names, bgs, maxobjs, output_dir="images_out", single
     im = bgs[random.randint(0, len(bgs)-1)].copy()
     # print('bg size='+str(im.size))
     cls0 = random.randint(0, len(objs)-1)
-    for c in range(0, random.randint(1, maxobjs)):
+    for _ in range(0, random.randint(1, maxobjs)):
         if single:
             cls = cls0
         else:
