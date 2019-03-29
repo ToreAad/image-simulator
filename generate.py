@@ -64,12 +64,37 @@ def mkimage(filename, objs, names, bgs, maxobjs, output_dir="images_out", single
         log = log + \
             ['{}\t{}\t{}\t{}\t{}\t{}\n'.format(
                 names[cls], cls, posy, posx, posy+sizey, posx+sizex)]
-    im.save(os.path.join(output_dir, filename+'.png'))
-    for i, seg_im in enumerate(seg_ims):
-        seg_im.save(os.path.join(output_dir, f'{filename}_segment{i}.png'))
 
-    with open(os.path.join(output_dir, filename+'.txt'), 'w') as f:
+    rgb_folder = os.path.join(output_dir, "rgb")
+    mask_folders = [os.path.join(output_dir, f"mask{i}") for i in range(len(objs))]
+
+    for d in [rgb_folder]+mask_folders:
+        if not os.path.exists(d):
+            os.makedirs(d)  
+
+    im.save(os.path.join(rgb_folder, f'{filename}.png'))
+
+    for i, seg_im in enumerate(seg_ims):
+        seg_im.save(os.path.join(mask_folders[i], f'{filename}.png'))
+
+    with open(os.path.join(output_dir, f'{filename}.txt'), 'w') as f:
         [f.write(l) for l in log]
+
+    csv_file = os.path.join(output_dir, "contents.csv")
+    if not os.path.exists(csv_file):
+        with open(csv_file, 'w+') as f:
+            f.write('rgb_file')
+            for i in range(len(mask_folders)):
+                f.write(f',mask_{i}')
+            f.write('\n')
+
+    with open(csv_file, 'a') as f:
+        f.write(os.path.join(rgb_folder, f'{filename}.png'))
+        for mask_folder in mask_folders:
+            f.write(',{}'.format(os.path.join(mask_folder, f'{filename}.png')))
+        f.write('\n')
+
+    
 
 
 def test():
