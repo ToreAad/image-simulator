@@ -34,15 +34,23 @@ def initialize(backgrounds_dir, classes_dir):
     return objs, class_names, bgs
 
 
+mask_counter = 0
 def mkimage(filename, objs, names, bgs, maxobjs, output_dir="images_out", single=False):
     """
     Simulate an image
     """
+    global mask_counter
     log = []
     im = bgs[random.randint(0, len(bgs)-1)].copy()
-    seg_ims = [Image.fromarray(np.zeros(
-        (im.height, im.width), dtype=np.uint8)).convert("L") for _ in range(len(objs))]
     cls0 = random.randint(0, len(objs)-1)
+
+    rgb_folder = os.path.join(output_dir, "rgb")
+    mask_folder = os.path.join(output_dir, "masks")
+
+    for d in [rgb_folder, mask_folder]:
+        if not os.path.exists(d):
+            os.makedirs(d)
+
     for _ in range(0, random.randint(1, maxobjs)):
         if single:
             cls = cls0
@@ -59,41 +67,28 @@ def mkimage(filename, objs, names, bgs, maxobjs, output_dir="images_out", single
         obj_mask = (obj_array[:, :, 3] != 0)
         obj_mask = np.uint8(obj_mask)*255
         obj_seg = Image.fromarray(obj_mask).convert("L")
-        seg_ims[cls].paste(obj_seg, (posx, posy), obj)
+        mask_path = os.path.join(mask_folder, f"mask_{mask_counter}.png") 
+        mask_counter += 1
+        obj_seg.resize((28,28)).save(mask_path)
 
-        log = log + \
-            ['{}\t{}\t{}\t{}\t{}\t{}\n'.format(
-                names[cls], cls, posy, posx, posy+sizey, posx+sizex)]
+        log.append(f'{names[cls]}\t{cls}\t{posy}\t{posx}\t{posy+sizey}\t{posx+sizex}\t{mask_path}\n')
 
-    rgb_folder = os.path.join(output_dir, "rgb")
-    mask_folders = [os.path.join(output_dir, f"mask{i}") for i in range(len(objs))]
+    im.resize((256,256)).save(os.path.join(rgb_folder, f'{filename}.png'))
 
-    for d in [rgb_folder]+mask_folders:
-        if not os.path.exists(d):
-            os.makedirs(d)  
-
-    im.save(os.path.join(rgb_folder, f'{filename}.png'))
-
-    for i, seg_im in enumerate(seg_ims):
-        seg_im.save(os.path.join(mask_folders[i], f'{filename}.png'))
-
-    with open(os.path.join(output_dir, f'{filename}.txt'), 'w') as f:
+    logfile_path = os.path.join(output_dir, f'{filename}.txt')
+    with open(logfile_path, 'w') as f:
         [f.write(l) for l in log]
 
     csv_file = os.path.join(output_dir, "contents.csv")
+    
     if not os.path.exists(csv_file):
         with open(csv_file, 'w+') as f:
-            f.write('rgb_file')
-            for i in range(len(mask_folders)):
-                f.write(f',mask_{i}')
-            f.write('\n')
+            f.write('log_file\n')
 
     with open(csv_file, 'a') as f:
-        f.write(os.path.join(rgb_folder, f'{filename}.png'))
-        for mask_folder in mask_folders:
-            f.write(',{}'.format(os.path.join(mask_folder, f'{filename}.png')))
-        f.write('\n')
-
+        f.write(f"{logfile_path}\n")
+    
+    return mask_counter
     
 
 
