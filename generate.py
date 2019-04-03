@@ -88,8 +88,6 @@ def mkimage(filename, objs, names, bgs, maxobjs, output_dir="images_out", single
     with open(csv_file, 'a') as f:
         f.write(f"{logfile_path}\n")
     
-    return mask_counter
-    
 
 
 def test():
