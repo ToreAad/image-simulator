@@ -62,18 +62,22 @@ def mkimage(filename, objs, names, bgs, maxobjs, output_dir="images_out", single
         posx = random.randint(-floor(sizex/2), imx-floor(sizex/2))
         posy = random.randint(-floor(sizey/2), imy-floor(sizey/2))
         im.paste(obj, (posx, posy), obj)
-
+        
         obj_array = np.array(obj)
         obj_mask = (obj_array[:, :, 3] != 0)
         obj_mask = np.uint8(obj_mask)*255
         obj_seg = Image.fromarray(obj_mask).convert("L")
+        seg_im = Image.fromarray(np.zeros((im.height, im.width), dtype=np.uint8)).convert("L")
+        seg_im.paste(obj_seg, (posx, posy), obj)
         mask_path = os.path.join(mask_folder, f"mask_{mask_counter}.png") 
         mask_counter += 1
-        obj_seg.resize((28,28)).save(mask_path)
 
-        log.append(f'{names[cls]}\t{cls}\t{posy}\t{posx}\t{posy+sizey}\t{posx+sizex}\t{mask_path}\n')
+        seg_im.resize((256,256)).save(mask_path)
 
-    im.resize((256,256)).save(os.path.join(rgb_folder, f'{filename}.png'))
+        log.append(f'{names[cls]}\t{cls}\t{posy}\t{posx}\t{posy+sizey}\t{posx+sizex}\t{os.path.abspath(mask_path)}\n')
+
+    rgbfile_path = os.path.join(rgb_folder, f'{filename}.png')
+    im.resize((256,256)).save(rgbfile_path)
 
     logfile_path = os.path.join(output_dir, f'{filename}.txt')
     with open(logfile_path, 'w') as f:
@@ -83,10 +87,10 @@ def mkimage(filename, objs, names, bgs, maxobjs, output_dir="images_out", single
     
     if not os.path.exists(csv_file):
         with open(csv_file, 'w+') as f:
-            f.write('log_file\n')
+            f.write('log_file,rgb_path,mask_path\n')
 
     with open(csv_file, 'a') as f:
-        f.write(f"{logfile_path}\n")
+        f.write(f"{filename},{rgbfile_path},{logfile_path}\n")
     
 
 
