@@ -69,17 +69,18 @@ def mkimage(filename, objs, names, bgs, maxobjs, output_dir="images_out", single
         obj_seg = Image.fromarray(obj_mask).convert("L")
         seg_im = Image.fromarray(np.zeros((im.height, im.width), dtype=np.uint8)).convert("L")
         seg_im.paste(obj_seg, (posx, posy), obj)
-        mask_path = os.path.join(mask_folder, f"mask_{mask_counter}.png") 
+        mask_path = os.path.join(mask_folder, "mask_{}.png".format(mask_counter)) 
         mask_counter += 1
 
         seg_im.resize((256,256)).save(mask_path)
 
-        log.append(f'{names[cls]}\t{cls}\t{posy}\t{posx}\t{posy+sizey}\t{posx+sizex}\t{os.path.abspath(mask_path)}\n')
+        log.append('{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(names[cls], 
+            cls, posy,posx,posy+sizey,posx+sizex,os.path.abspath(mask_path)))
 
-    rgbfile_path = os.path.join(rgb_folder, f'{filename}.png')
+    rgbfile_path = os.path.join(rgb_folder, '{}.png'.format(filename))
     im.resize((256,256)).save(rgbfile_path)
 
-    logfile_path = os.path.join(output_dir, f'{filename}.txt')
+    logfile_path = os.path.join(output_dir, '{}.txt'.format(filename))
     with open(logfile_path, 'w') as f:
         [f.write(l) for l in log]
 
@@ -90,7 +91,7 @@ def mkimage(filename, objs, names, bgs, maxobjs, output_dir="images_out", single
             f.write('log_file,rgb_path,mask_path\n')
 
     with open(csv_file, 'a') as f:
-        f.write(f"{filename},{rgbfile_path},{logfile_path}\n")
+        f.write("{},{},{}\n".format(filename,rgbfile_path,logfile_path))
     
 
 
